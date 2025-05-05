@@ -50,7 +50,6 @@
         <section class="order-summary mb-8">
           <h2 class="text-2xl font-semibold mb-4">Сумма заказа</h2>
           <p>Стоимость товаров: {{ totalPrice }} ₽</p>
-          <p>Налог (5%): {{ vatPrice }} ₽</p>
           <p>Доставка: {{ shippingCost }} ₽</p>
           <p class="font-bold">Итого: {{ grandTotal }} ₽</p>
         </section>
@@ -80,7 +79,7 @@
                 class="w-full p-2 border rounded"
               >
                 <option disabled value="">Выберите способ доставки</option>
-                <option value="standard">Стандартная (300 ₽)</option>
+                <option value="standard">Стандартная (0 ₽)</option>
                 <option value="express">Экспресс (600 ₽)</option>
               </select>
             </div>
@@ -244,7 +243,7 @@ const orderData = ref({
 
 // Вычисляем стоимость доставки
 const shippingCost = computed(() => {
-  if (orderData.value.shippingMethod === 'standard') return 300
+  if (orderData.value.shippingMethod === 'standard') return 0
   if (orderData.value.shippingMethod === 'express') return 600
   return 0
 })

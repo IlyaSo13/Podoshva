@@ -1,44 +1,65 @@
 <script setup>
-defineProps({
-  id: Number,
-  title: String,
-  imageUrl: String,
-  price: Number,
-  isFavorite: Boolean,
-  isAdded: Boolean,
-  onClickFavorite: Function,
-  onClickAdd: Function
-})
+const props = defineProps({
+  id: { type: Number, required: true },
+  title: { type: String, required: true },
+  imageUrl: { type: String, required: true },
+  price: { type: Number, required: true },
+  isFavorite: { type: Boolean, default: false },
+  isAdded: { type: Boolean, default: false },
+  onClickFavorite: { type: Function, default: null },
+  onClickAdd: { type: Function, default: null }
+});
 </script>
 
 <template>
   <div
-    class="relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-xl"
+    class="card relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-xl"
   >
-    <img
+    <!-- Кнопка-сердечко (нажатие не всплывает) -->
+    <button
       v-if="onClickFavorite"
-      :src="!isFavorite ? '/like-1.svg' : '/like-2.svg'"
-      alt="Like 1"
-      class="absolute top-8 left-8"
-      @click="onClickFavorite"
-    />
-
-    <img :src="imageUrl" alt="Sneaker" />
-
-    <p class="mt-2">{{ title }}</p>
-
-    <div class="flex justify-between mt-5">
-      <div class="flex flex-col">
-        <span class="text-slate-400">Цена:</span>
-        <b>{{ price }} руб.</b>
-      </div>
-
+      class="heart-button absolute top-8 left-8 z-9 bg-transparent border-0 cursor-pointer"
+      @click.stop="onClickFavorite"
+    >
       <img
-        v-if="onClickAdd"
-        @click="onClickAdd"
-        :src="!isAdded ? '/plus.svg' : '/checked.svg'"
-        alt="Plus"
+        :src="isFavorite ? '/like-2.svg' : '/like-1.svg'"
+        alt="Favorite Icon"
+        class="heart-icon"
       />
-    </div>
+    </button>
+
+    <img :src="imageUrl" alt="Product Image" class="w-full object-cover rounded-md mb-2" />
+
+    <p class="mt-2 text-lg font-semibold">{{ title }}</p>
+    <p class="text-slate-400">Цена: {{ price }} руб.</p>
+
+    <!-- Кнопка добавления в корзину (нажатие не всплывает) -->
+    <button
+      v-if="onClickAdd"
+      class="cart-button mt-4 inline-flex items-center bg-transparent border-0 cursor-pointer"
+      @click.stop="onClickAdd"
+    >
+      <img
+        :src="isAdded ? '/checked.svg' : '/plus.svg'"
+        alt="Add to Cart Icon"
+        class="cart-icon"
+      />
+    </button>
   </div>
 </template>
+
+<style scoped>
+.heart-button,
+.cart-button {
+  pointer-events: auto;
+}
+
+/* Увеличиваем иконки до 32px и добавляем drop-shadow для лучшей видимости */
+.heart-icon,
+.cart-icon {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+</style>

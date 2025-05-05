@@ -39,8 +39,7 @@ const createOrder = () => {
     name: 'Order',
     query: {
       orderItems: JSON.stringify(orderItems),
-      totalPrice: props.totalPrice,
-      vatPrice: props.vatPrice
+      totalPrice: props.totalPrice
     }
   })
 
@@ -77,12 +76,6 @@ const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value)
           <span>Итого:</span>
           <div class="flex-1 border-b border-dashed"></div>
           <b>{{ totalPrice }} ₽</b>
-        </div>
-
-        <div class="flex gap-2">
-          <span>Налог 5%:</span>
-          <div class="flex-1 border-b border-dashed"></div>
-          <b>{{ vatPrice }} ₽</b>
         </div>
 
         <button

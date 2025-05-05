@@ -46,7 +46,7 @@ const emit = defineEmits(['openDrawer'])
       <router-link to="/favorites">
         <li class="flex items-center cursor-pointer gap-3 text-gray-500 hover:text-black">
           <img src="/heart.svg" alt="Favorites" />
-          <span>Закладки</span>
+          <span>Избранное</span>
         </li>
       </router-link>
       <router-link to="/Profiles">
