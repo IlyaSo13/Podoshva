@@ -30,19 +30,19 @@
   const slides = ref([
     {
       id: 1,
-      image: "/public/trand2025-1920x780x.jpg",
+      image: "/trand2025-1920x780x.jpg",
       title: "Добро пожаловать в наш магазин кроссовок!",
       subtitle: "Здесь вы найдете последние тренды 2025 года.",
     },
     {
       id: 2,
-      image: "/public/9.jpg",
+      image: "/9.jpg",
       title: "Эксклюзивные модели",
       subtitle: "Лучшие предложения этой недели.",
     },
     {
       id: 3,
-      image: "/public/7.jpg",
+      image: "/7.jpg",
       title: "Новинки сезона",
       subtitle: "Будь в тренде с самыми свежими поступлениями.",
     },

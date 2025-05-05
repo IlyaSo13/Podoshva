@@ -26,10 +26,10 @@
           <!-- Ссылки на соцсети -->
           <div class="flex gap-4">
             <a href="https://vk.com/soubezb" target="_blank" rel="noopener noreferrer">
-              <img src="/public/vk.png" alt="VK" class="w-6 h-6" />
+              <img src="/vk.png" alt="VK" class="w-6 h-6" />
             </a>
             <a href="https://t.me/IlyaSo13_official" target="_blank" rel="noopener noreferrer">
-              <img src="/public/telegram.png" alt="Telegram" class="w-6 h-6" />
+              <img src="/telegram.png" alt="Telegram" class="w-6 h-6" />
             </a>
           </div>
         </div>

@@ -44,7 +44,7 @@ const clearCart = () => {
     <!-- Правая область: заглушка для "очистить корзину" -->
     <img
       @click="clearCart"
-      src="\public\trash-svgrepo-com.svg"
+      src="\trash-svgrepo-com.svg"
       alt="Очистить корзину"
       class="w-6 h-6 cursor-pointer hover:opacity-70 transition"
     />
