@@ -324,7 +324,7 @@ const submitOrder = async () => {
 
   try {
     const response = await axios.post('https://fc92f27366340adc.mokky.dev/orders', payload)
-    orderMessage.value = `Заказ успешно оформлен! Индивидуальный Номер заказа: ${response.data.id}`
+    orderMessage.value = `Заказ успешно оформлен! Индивидуальный номер заказа: ${response.data.id}`
     // После успешного оформления очищаем корзину (если корзина хранится в localStorage)
     localStorage.removeItem('cart')
   } catch (err) {
