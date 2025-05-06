@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import DrawerHead from './DrawerHead.vue'
@@ -15,6 +15,26 @@ const { cart, closeDrawer } = inject('cart')
 const router = useRouter()
 
 const isCreating = ref(false)
+
+// Функция для извлечения cookie по имени
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Вычисляемое свойство для определения авторизации на основе наличия токена в cookie
+const isUserAuthorized = computed(() => {
+  return !!getCookie('token')
+})
+
+// Если пользователь выходит (токен исчезает), очищаем локальную корзину.
+watch(isUserAuthorized, (newVal) => {
+  if (!newVal) {
+    cart.value = []  // очищаем корзину на уровне отображения
+  }
+})
 
 // Функция создания заказа: собираем orderItems из корзины и передаём их на страницу Order через query-параметры
 const createOrder = () => {
