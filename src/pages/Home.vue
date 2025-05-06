@@ -7,22 +7,55 @@ import CardList from '../components/CardList.vue'
 import CarouselBanner from '../components/CarouselBanner.vue'
 import Footer from '../components/Footer.vue'
 
-// Получаем глобальные методы для корзины
+// Получаем глобальные методы для работы с корзиной
 const { cart, addToCart, removeFromCart } = inject('cart')
 
-// Список товаров, полученных с сервера
-const items = ref([])
+// Функция для извлечения cookie по имени
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
 
-// Результат сортировки и поиска – фильтры
+// Функция для декодирования JWT
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Ошибка декодирования токена:', e);
+    return null;
+  }
+}
+
+// Вместо получения токена из localStorage теперь получаем его из куки
+const token = getCookie('apiToken')
+// currentUser хранится в реактивной переменной.
+const currentUser = ref(token ? parseJwt(token) : null);
+
+// Вычисляемое свойство для проверки авторизации
+const isUserAuthorized = computed(() => !!(currentUser.value && currentUser.value.id));
+
+// Список товаров
+const items = ref([]);
+
+// Фильтры для сортировки и поиска
 const filters = reactive({
   sortBy: 'title',
   searchQuery: ''
-})
+});
 
-// Результаты запроса избранного: здесь храним оригинальные данные (например, id записи и item_id)
-const rawFavorites = ref([])
-
-// Модальное окно для выбора размера при добавлении в корзину
+// Модальные переменные для выбора размера при добавлении в корзину
 const showModal = ref(false)
 const selectedProduct = ref(null)
 const selectedSize = ref('')
@@ -33,7 +66,7 @@ const openModalForProduct = (product) => {
   showModal.value = true
 }
 
-// Если товар не добавлен в корзину – открываем модальное окно, иначе – удаляем его из корзины
+// Обработчик добавления в корзину: если товар ещё не добавлен – открываем модальное окно, иначе – удаляем
 const onClickAddPlus = (item) => {
   if (!item.isAdded) {
     openModalForProduct(item)
@@ -50,20 +83,25 @@ const onChangeSearchInput = debounce((event) => {
   filters.searchQuery = event.target.value
 }, 300)
 
-// Функция для добавления/удаления в избранное, привязанная к отдельной кнопке
+// Функция добавления/удаления товара в избранное с привязкой к текущему пользователю
 const addToFavorite = async (item) => {
+  // Если пользователь не авторизован – выводим сообщение и выходим
+  if (!currentUser.value || !currentUser.value.id) {
+    alert('Пожалуйста, войдите в систему, чтобы добавить товар в избранное.')
+    return
+  }
   try {
     if (!item.isFavorite) {
-      const obj = { item_id: item.id }
+      const obj = {
+        item_id: item.id,
+        user_id: currentUser.value.id
+      }
       item.isFavorite = true
       const { data } = await axios.post(`https://fc92f27366340adc.mokky.dev/favorites`, obj)
-      // Сохраняем favoriteId как id записи избранного
       item.favoriteId = data.id
-      rawFavorites.value.push({ item_id: item.id, id: data.id })
     } else {
       item.isFavorite = false
       await axios.delete(`https://fc92f27366340adc.mokky.dev/favorites/${item.favoriteId}`)
-      rawFavorites.value = rawFavorites.value.filter((fav) => fav.item_id !== item.id)
       item.favoriteId = null
     }
   } catch (err) {
@@ -71,10 +109,26 @@ const addToFavorite = async (item) => {
   }
 }
 
+// Функция загрузки избранного (с фильтром по текущему пользователю)
 const fetchFavorites = async () => {
   try {
-    const { data: favoritesData } = await axios.get(`https://fc92f27366340adc.mokky.dev/favorites`)
-    rawFavorites.value = favoritesData
+    let url = `https://fc92f27366340adc.mokky.dev/favorites`
+    if (currentUser.value && currentUser.value.id) {
+      url += `?user_id=${currentUser.value.id}`
+    }
+    const { data: favoritesData } = await axios.get(url)
+    // Обновляем флаг isFavorite в товарах на основе полученных записей избранного
+    items.value = items.value.map((item) => {
+      const favorite = favoritesData.find((favorite) => favorite.item_id === item.id)
+      if (!favorite) {
+        return item
+      }
+      return {
+        ...item,
+        isFavorite: true,
+        favoriteId: favorite.id
+      }
+    })
   } catch (err) {
     console.log(err)
   }
@@ -87,43 +141,24 @@ const fetchItems = async () => {
       params.title = `*${filters.searchQuery}*`
     }
     const { data } = await axios.get(`https://fc92f27366340adc.mokky.dev/items`, { params })
-    // Инициализируем данные товара: флаги избранного и добавления в корзину будут подставлены позже через computed
+    // Инициализируем товары с дефолтными значениями для избранного и корзины
     items.value = data.map((obj) => ({
       ...obj,
       isFavorite: false,
       favoriteId: null,
       isAdded: false,
-      sizes: obj.sizes || ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45']
+      sizes: obj.sizes || ['36','37','38', '39', '40', '41', '42', '43', '44', '45']
     }))
   } catch (err) {
     console.log(err)
   }
 }
 
-// Вычисляемое свойство, которое возвращает итоговый список товаров с актуальными состояниями:
-// - Для isFavorite и favoriteId – проверяем в rawFavorites
-// - Для isAdded – сравниваем с данными из корзины (cart)
-const displayedItems = computed(() => {
-  return items.value.map((item) => {
-    const fav = rawFavorites.value.find((fav) => fav.item_id === item.id)
-    return {
-      ...item,
-      isFavorite: !!fav,
-      favoriteId: fav ? fav.id : null,
-      isAdded: cart.value.some((cartItem) => cartItem.id === item.id)
-    }
-  })
-})
-
-// Функция подтверждения добавления товара в корзину с выбранным размером
+// Функция подтверждения добавления товара с выбранным размером в корзину
 const confirmAddToCart = () => {
   if (selectedProduct.value && selectedSize.value) {
-    const productWithSize = {
-      ...selectedProduct.value,
-      selectedSize: selectedSize.value
-    }
+    const productWithSize = { ...selectedProduct.value, selectedSize: selectedSize.value }
     addToCart(productWithSize)
-    // Обновляем локальное состояние товара
     items.value = items.value.map((item) =>
       item.id === productWithSize.id ? { ...item, isAdded: true } : item
     )
@@ -135,37 +170,55 @@ const confirmAddToCart = () => {
   }
 }
 
-// Функция закрытия модального окна
-const cancelModal = () => {
+const closeModal = () => {
   showModal.value = false
   selectedProduct.value = null
   selectedSize.value = ''
 }
 
+// При монтировании загружаем корзину, товары и избранное
 onMounted(async () => {
-  // Загрузка корзины из localStorage
   const localCart = localStorage.getItem('cart')
   cart.value = localCart ? JSON.parse(localCart) : []
   await fetchItems()
   await fetchFavorites()
-})
-
-watch(cart, () => {
-  // Обновляем флаг isAdded у товаров при изменении корзины
   items.value = items.value.map((item) => ({
     ...item,
     isAdded: cart.value.some((cartItem) => cartItem.id === item.id)
   }))
 })
 
-// При изменении фильтров (например, сортировки или поиска) заново загружаем товары
+// Если корзина меняется, обновляем флаг isAdded у товаров
+watch(cart, () => {
+  items.value = items.value.map((item) => ({
+    ...item,
+    isAdded: cart.value.some((cartItem) => cartItem.id === item.id)
+  }))
+})
+
+// При изменении фильтров загружаем товары (fetchItems)
 watch(filters, fetchItems)
+
+// Важный момент: при выходе из аккаунта (currentUser становится null),
+// снимаем локальные пометки о том, что товар избран (isFavorite)
+// Но при этом записи на сервере остаются, их можно увидеть в списке аккаунта.
+watch(isUserAuthorized, (newVal) => {
+  if (!newVal) {
+    // Если пользователь не авторизован, обновляем все товары,
+    // снимая пометки избранного.
+    items.value = items.value.map(item => ({
+      ...item,
+      isFavorite: false,
+      favoriteId: null
+    }))
+  }
+})
 </script>
 
 <template>
   <div>
     <CarouselBanner />
-    <!-- Шапка страницы: сортировка и поиск -->
+    <!-- Шапка страницы -->
     <div class="flex justify-between items-center">
       <h2 class="text-3xl font-bold mt-6">Все кроссовки</h2>
       <div class="flex gap-4">
@@ -185,19 +238,22 @@ watch(filters, fetchItems)
         </div>
       </div>
     </div>
-    <!-- Передаем карточкам вычисляемый массив displayedItems, благодаря которому состояние избранного корректно отображается -->
+
+    <!-- Список товаров; передаем в CardList флаг isAuthorized -->
     <div class="mt-10">
-      <CardList
-        :items="displayedItems"
-        @add-to-favorite="addToFavorite"
-        @add-to-cart="onClickAddPlus"
+      <CardList 
+        :items="items" 
+        :isAuthorized="isUserAuthorized"
+        @add-to-favorite="addToFavorite" 
+        @add-to-cart="onClickAddPlus" 
       />
     </div>
     <div class="mt-10">
       <Footer />
     </div>
-    <!-- Модальное окно для выбора размера -->
-    <div v-if="showModal" class="modal-overlay" @click.self="cancelModal">
+
+    <!-- Модальное окно выбора размера -->
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
       <div class="modal">
         <h3 class="text-xl mb-4">
           Выберите размер для {{ selectedProduct ? selectedProduct.title : '' }}
@@ -205,9 +261,7 @@ watch(filters, fetchItems)
         <select v-model="selectedSize" class="py-2 px-3 border rounded-md outline-none">
           <option disabled value="">Выберите размер</option>
           <option
-            v-for="size in selectedProduct && selectedProduct.sizes
-              ? selectedProduct.sizes
-              : ['38', '39', '40', '41', '42']"
+            v-for="size in selectedProduct && selectedProduct.sizes ? selectedProduct.sizes : ['38','39','40','41','42']"
             :key="size"
             :value="size"
           >
@@ -222,7 +276,10 @@ watch(filters, fetchItems)
           >
             Добавить
           </button>
-          <button @click="cancelModal" class="py-2 px-4 bg-gray-300 text-black rounded">
+          <button 
+            @click="closeModal" 
+            class="py-2 px-4 bg-gray-300 text-black rounded"
+          >
             Отмена
           </button>
         </div>

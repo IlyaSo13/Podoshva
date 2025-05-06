@@ -93,8 +93,7 @@
                 class="w-full p-2 border rounded"
               >
                 <option disabled value="">Выберите способ оплаты</option>
-                <option value="card">Банковская карта</option>
-                <option value="cash">Наличные</option>
+                <option value="cash">При получении</option>
                 <option value="online">Онлайн-оплата</option>
               </select>
             </div>
@@ -278,7 +277,7 @@ const submitOrder = async () => {
     return
   }
   if (
-    (orderData.value.paymentMethod === 'card' || orderData.value.paymentMethod === 'online') &&
+    orderData.value.paymentMethod === 'online' &&
     (!orderData.value.cardNumber || !orderData.value.cardExpiry || !orderData.value.cardCVV)
   ) {
     errorMessage.value = 'Пожалуйста, заполните платежные данные.'
@@ -300,18 +299,9 @@ const submitOrder = async () => {
       address: orderData.value.address,
       shippingMethod: orderData.value.shippingMethod,
       paymentMethod: orderData.value.paymentMethod,
-      cardNumber:
-        orderData.value.paymentMethod === 'card' || orderData.value.paymentMethod === 'online'
-          ? orderData.value.cardNumber
-          : null,
-      cardExpiry:
-        orderData.value.paymentMethod === 'card' || orderData.value.paymentMethod === 'online'
-          ? orderData.value.cardExpiry
-          : null,
-      cardCVV:
-        orderData.value.paymentMethod === 'card' || orderData.value.paymentMethod === 'online'
-          ? orderData.value.cardCVV
-          : null
+      cardNumber: orderData.value.paymentMethod === 'online' ? orderData.value.cardNumber : null,
+      cardExpiry: orderData.value.paymentMethod === 'online' ? orderData.value.cardExpiry : null,
+      cardCVV: orderData.value.paymentMethod === 'online' ? orderData.value.cardCVV : null
     },
     account: {
       id: account.id,

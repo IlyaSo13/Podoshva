@@ -4,10 +4,42 @@ import axios from 'axios'
 import Card from '../components/Card.vue'
 import Footer from '../components/Footer.vue'
 
-// Получаем глобальные методы для корзины (через provide)
+// Функция для декодирования JWT (предполагается, что токен хранится в cookie)
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        })
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (e) {
+    console.error('Ошибка декодирования токена:', e)
+    return null
+  }
+}
+
+// Функция для извлечения значения cookie по имени
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Получаем токен из cookie и определяем текущего пользователя
+const token = getCookie('apiToken')
+const currentUser = token ? parseJwt(token) : null
+
+// Получаем глобальные методы для работы с корзиной (через provide)
 const { cart, addToCart, removeFromCart } = inject('cart')
 
-// Массив избранных товаров
+// Массив избранных товаров (будет содержать только записи, привязанные к текущему пользователю)
 const favorites = ref([])
 
 // Переменные для работы с модальным окном выбора размера
@@ -15,14 +47,19 @@ const showModal = ref(false)
 const selectedProduct = ref(null)
 const selectedSize = ref('')
 
-// При монтировании загружаем избранные товары
+// При монтировании загружаем избранные товары, фильтруя по user_id текущего пользователя
 onMounted(async () => {
+  if (!currentUser || !currentUser.id) {
+    console.warn('Пользователь не авторизован. Избранное не будет загружено.')
+    return
+  }
   try {
     const { data } = await axios.get(
-      'https://fc92f27366340adc.mokky.dev/favorites?_relations=items'
+      // Параметр user_id гарантирует, что получены только записи текущего пользователя
+      `https://fc92f27366340adc.mokky.dev/favorites?user_id=${currentUser.id}&_relations=items`
     )
     /*
-      Предполагается, что ответ API возвращает массив объектов вида:
+      Ожидается, что сервер возвращает массив объектов вида:
       {
           id: <favorite_record_id>,
           item: { id, title, imageUrl, price, sizes, ... }
@@ -30,7 +67,7 @@ onMounted(async () => {
     */
     favorites.value = data.map((obj) => ({
       ...obj.item,
-      favoriteId: obj.id, // сохраняем id записи избранного
+      favoriteId: obj.id,           // сохраняем id записи избранного
       sizes: obj.item.sizes || ['38', '39', '40', '41', '42'],
       isFavorite: true,
       isAdded: cart.value.some((cartItem) => cartItem.id === obj.item.id)
@@ -40,7 +77,7 @@ onMounted(async () => {
   }
 })
 
-// Следим за изменениями в корзине и обновляем флаг isAdded
+// Следим за изменениями в корзине и обновляем флаг isAdded для каждого избранного товара
 watch(cart, (newCart) => {
   favorites.value = favorites.value.map((favItem) => ({
     ...favItem,
@@ -48,7 +85,7 @@ watch(cart, (newCart) => {
   }))
 })
 
-// Функция переключения избранного (удаление товара из избранного)
+// Функция переключения избранного: на странице "Избранное" это удаление записи
 const toggleFavorite = async (item) => {
   console.log('toggleFavorite вызвана для:', item)
   favorites.value = favorites.value.filter((fav) => fav.id !== item.id)
@@ -60,7 +97,7 @@ const toggleFavorite = async (item) => {
   }
 }
 
-// Обработчик добавления в корзину: если товар уже добавлен – удаляем, иначе – открываем модальное окно
+// Обработчик добавления в корзину: если товар уже добавлен – удаляем, иначе – открываем модальное окно для выбора размера
 const handleAddToCart = (item) => {
   if (item.isAdded) {
     removeFromCart(item)
@@ -96,10 +133,12 @@ const closeModal = () => {
 <template>
   <div class="favorites-page container mx-auto p-4">
     <h2 class="text-3xl font-bold mb-8">Мои избранные товары</h2>
+    <!-- Если массив favorites пуст -->
     <div v-if="!favorites.length" class="text-center text-lg text-slate-500">
       В избранном нет товаров.
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Если есть товары – выводим карточки -->
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <Card
         v-for="item in favorites"
         :key="item.id"
