@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 // Функция для извлечения значения cookie по имени
 function getCookie(name) {
@@ -17,9 +17,7 @@ function parseJwt(token) {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map((c) => {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-        })
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     )
     return JSON.parse(jsonPayload)
@@ -30,33 +28,55 @@ function parseJwt(token) {
 }
 
 const props = defineProps({
-  id: { type: Number, required: true },
-  title: { type: String, required: true },
-  imageUrl: { type: String, required: true },
-  price: { type: Number, required: true },
-  isFavorite: { type: Boolean, default: false },
-  isAdded: { type: Boolean, default: false },
-  onClickFavorite: { type: Function, default: null },
-  onClickAdd: { type: Function, default: null },
-  // Новый пропс – флаг авторизации пользователя.
-  // Если не передан, будем вычислять его, проверяя наличие токена в cookie.
-  isAuthorized: { type: Boolean, default: undefined }
+  id: Number,
+  title: String,
+  imageUrl: String,
+  price: Number,
+  isFavorite: Boolean,
+  isAdded: Boolean,
+  onClickFavorite: Function,
+  onClickAdd: Function,
+  onUpdateQuantity: Function, // Обработчик для обновления количества (если нужен)
+  isAuthorized: Boolean
 })
 
-// Если пропс isAuthorized не задан (undefined), вычисляем его по наличию токена в cookie.
+// Локальное состояние для количества товара
+const quantity = ref(1)
+
+// Если пропс isAuthorized не передан, вычисляем его по наличию apiToken в cookie
 const userAuthorized = computed(() => {
   if (props.isAuthorized !== undefined) return props.isAuthorized
   const token = getCookie('apiToken')
   return !!token
 })
 
-// Вычисляем свойство для отображения состояния "избранного" – если пользователь не авторизован,
-// то пометка снимается (возвращается false), независимо от переданного свойства isFavorite.
-const displayedFavorite = computed(() => {
-  return userAuthorized.value ? props.isFavorite : false
+// Если пользователь не авторизован – сбрасываем отметку добавления
+const displayedAdded = computed(() => {
+  return userAuthorized.value ? props.isAdded : false
 })
 
-// Обёртка для клика по сердечку, проверяющая авторизацию.
+// Обработчик клика по кнопке добавления в корзину
+const handleCartClick = () => {
+  if (!userAuthorized.value) {
+    alert('Пожалуйста, войдите в систему, чтобы добавить товар в корзину.')
+    return
+  }
+  // Передаём актуальное количество из локального состояния
+  if (props.onClickAdd) {
+    props.onClickAdd({ id: props.id, quantity: quantity.value })
+  }
+}
+
+// Обновляем количество при изменении введённого значения.
+// Если задан обработчик onUpdateQuantity (когда товар уже добавлен), вызываем его.
+const updateQuantity = () => {
+  quantity.value = Math.max(1, quantity.value)
+  if (props.isAdded && props.onUpdateQuantity) {
+    props.onUpdateQuantity(props.id, quantity.value)
+  }
+}
+
+// Обработчик клика по кнопке избранного
 const handleFavoriteClick = () => {
   if (!userAuthorized.value) {
     alert('Пожалуйста, войдите в систему, чтобы добавить товар в избранное.')
@@ -69,21 +89,14 @@ const handleFavoriteClick = () => {
 </script>
 
 <template>
-  <div
-    class="card relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-xl"
-  >
-    <!-- Кнопка-сердечко с модификатором .stop, вызывающая handleFavoriteClick -->
+  <div class="card relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-xl">
+    <!-- Кнопка избранного -->
     <button
       v-if="onClickFavorite"
       class="heart-button absolute top-8 left-8 z-9 bg-transparent border-0 cursor-pointer"
       @click.stop="handleFavoriteClick"
     >
-      <!-- Используем displayedFavorite вместо props.isFavorite -->
-      <img
-        :src="displayedFavorite ? '/like-2.svg' : '/like-1.svg'"
-        alt="Favorite Icon"
-        class="heart-icon"
-      />
+      <img :src="isFavorite ? '/like-2.svg' : '/like-1.svg'" alt="Favorite Icon" class="heart-icon" />
     </button>
 
     <img :src="imageUrl" alt="Product Image" class="w-full object-cover rounded-md mb-2" />
@@ -91,13 +104,25 @@ const handleFavoriteClick = () => {
     <p class="mt-2 text-lg font-semibold">{{ title }}</p>
     <p class="text-slate-400">Цена: {{ price }} руб.</p>
 
+    <!-- Инпут для изменения количества -->
+    <div class="quantity-selector">
+      <label>Количество:</label>
+      <input
+        type="number"
+        v-model.number="quantity"
+        min="1"
+        class="quantity-input"
+        @change="updateQuantity"
+      />
+    </div>
+
     <!-- Кнопка добавления в корзину -->
     <button
       v-if="onClickAdd"
       class="cart-button mt-4 inline-flex items-center bg-transparent border-0 cursor-pointer"
-      @click.stop="onClickAdd"
+      @click.stop="handleCartClick"
     >
-      <img :src="isAdded ? '/checked.svg' : '/plus.svg'" alt="Add to Cart Icon" class="cart-icon" />
+      <img :src="displayedAdded ? '/checked.svg' : '/plus.svg'" alt="Add to Cart Icon" class="cart-icon" />
     </button>
   </div>
 </template>
@@ -108,7 +133,19 @@ const handleFavoriteClick = () => {
   pointer-events: auto;
 }
 
-/* Увеличиваем иконки до 32px и добавляем drop-shadow для лучшей видимости */
+.quantity-selector {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.quantity-input {
+  width: 50px;
+  text-align: center;
+}
+
+/* Увеличиваем иконки до 32px и добавляем drop-shadow */
 .heart-icon,
 .cart-icon {
   width: 32px;

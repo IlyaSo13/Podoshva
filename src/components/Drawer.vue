@@ -1,13 +1,12 @@
 <script setup>
 import { computed, inject, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-
 import DrawerHead from './DrawerHead.vue'
 import CartItemList from './CartItemList.vue'
 import InfoBlock from './InfoBlock.vue'
 
 const props = defineProps({
-  totalPrice: Number,
+  // Поле totalPrice будет вычисляться локально, поэтому его можно не использовать
   vatPrice: Number
 })
 
@@ -16,7 +15,7 @@ const router = useRouter()
 
 const isCreating = ref(false)
 
-// Функция для извлечения cookie по имени
+// Функция для извлечения cookie по имени (если понадобится для авторизации)
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -24,42 +23,47 @@ function getCookie(name) {
   return null;
 }
 
-// Вычисляемое свойство для определения авторизации на основе наличия токена в cookie
+// Определяем, авторизован ли пользователь (на основе наличия токена)
 const isUserAuthorized = computed(() => {
   return !!getCookie('token')
 })
 
-// Если пользователь выходит (токен исчезает), очищаем локальную корзину.
+// Если пользователь выходит (токен исчезает), очищаем корзину
 watch(isUserAuthorized, (newVal) => {
   if (!newVal) {
-    cart.value = []  // очищаем корзину на уровне отображения
+    cart.value = []  // Очищаем корзину на уровне отображения
   }
 })
 
-// Функция создания заказа: собираем orderItems из корзины и передаём их на страницу Order через query-параметры
+// Вычисляем итоговую сумму, перемножая цену на количество каждого товара
+const computedTotalPrice = computed(() => {
+  return cart.value.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0)
+})
+
+// Функция создания заказа. Здесь мы берём товары из корзины, включая актуальное количество.
 const createOrder = () => {
   if (cart.value.length === 0) return
 
   isCreating.value = true
 
-  // Формируем массив товаров с выбранными размерами
+  // Формирование массива товаров, где сохраняются актуальные поля, в том числе quantity
   const orderItems = cart.value.map(item => ({
     id: item.id,
-    name: item.name,
+    name: item.name,          // убедитесь, что имя сохраняется в объекте товара
     price: item.price,
     quantity: item.quantity || 1,
-    size: item.selectedSize // передаём выбранный размер
+    size: item.selectedSize   // выбранный размер, если есть
   }))
 
-  // Закрываем корзину
-  closeDrawer()
+  // Закрываем корзину (drawer)
+  if (typeof closeDrawer === 'function') closeDrawer()
 
-  // Перенаправляем пользователя на страницу Order, передавая данные заказа через query-параметры
+  // Перенаправляем пользователя на страницу заказа, передавая данные заказа через query-параметры
   router.push({
     name: 'Order',
     query: {
       orderItems: JSON.stringify(orderItems),
-      totalPrice: props.totalPrice
+      totalPrice: computedTotalPrice.value
     }
   })
 
@@ -78,7 +82,7 @@ const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value)
   <div class="bg-white w-96 h-full fixed right-0 top-0 z-20 p-8">
     <DrawerHead />
 
-    <!-- Если корзина пуста, отображается InfoBlock -->
+    <!-- Если корзина пуста – выводим InfoBlock -->
     <div v-if="cartIsEmpty" class="flex h-full items-center">
       <InfoBlock
         title="Корзина пустая"
@@ -87,7 +91,7 @@ const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value)
       />
     </div>
 
-    <!-- Если в корзине имеются товары -->
+    <!-- Если в корзине имеются товары, показываем список и итоговую сумму -->
     <div v-else>
       <CartItemList />
 
@@ -95,7 +99,7 @@ const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value)
         <div class="flex gap-2">
           <span>Итого:</span>
           <div class="flex-1 border-b border-dashed"></div>
-          <b>{{ totalPrice }} ₽</b>
+          <b>{{ computedTotalPrice }} ₽</b>
         </div>
 
         <button
@@ -112,7 +116,7 @@ const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value)
 
 <style scoped>
 .cart-items {
-  max-height: 60vh; /* Можно настроить максимальную высоту списка товаров */
+  max-height: 60vh; /* можно настроить, если это требуется */
   overflow-y: auto;
 }
 </style>

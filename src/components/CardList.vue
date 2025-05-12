@@ -10,7 +10,7 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  // Новый пропс для авторизации пользователя
+  // Пропс для авторизации пользователя
   isAuthorized: {
     type: Boolean,
     default: true
@@ -29,11 +29,11 @@ const emit = defineEmits(['addToFavorite', 'addToCart'])
       :title="item.title"
       :imageUrl="item.imageUrl"
       :price="item.price"
-      :onClickFavorite="isFavorites ? null : () => emit('addToFavorite', item)"
-      :onClickAdd="isFavorites ? null : () => emit('addToCart', item)"
       :isFavorite="item.isFavorite"
       :isAdded="item.isAdded"
       :isAuthorized="isAuthorized"
+      @clickFavorite="emit('addToFavorite', item)"
+      @clickAdd="emit('addToCart', item)"
     />
   </div>
 </template>
