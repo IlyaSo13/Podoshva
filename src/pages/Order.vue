@@ -226,7 +226,6 @@ const orderItems = ref(parsedItems)
 
 // Если totalPrice и vatPrice переданы через query, используем их; иначе задаём 0
 const queryTotalPrice = Number(route.query.totalPrice) || 0
-const queryVatPrice = Number(route.query.vatPrice) || 0
 const totalPrice = ref(queryTotalPrice)
 const vatPrice = ref(queryVatPrice)
 
