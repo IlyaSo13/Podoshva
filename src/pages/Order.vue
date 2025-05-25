@@ -11,7 +11,9 @@
       <div v-if="orderMessage" class="order-confirmation text-center">
         <img src="/order-success-icon.png" alt="Заказ оформлен" class="mx-auto mb-4 w-32" />
         <p class="mb-4 text-lg font-semibold">{{ orderMessage }}</p>
-        <button @click="goToHome" class="py-2 px-4 rounded">На главную</button>
+        <button @click="goToHome" class="py-2 px-4 rounded bg-green-500 text-white">
+          На главную
+        </button>
       </div>
 
       <!-- Иначе отображаем обычный контент заказа -->
@@ -19,24 +21,23 @@
         <!-- Секция с товарами заказа -->
         <section class="order-items mb-8">
           <h2 class="text-2xl font-semibold mb-4">Ваши товары</h2>
-          <div v-if="orderItems && orderItems.length" class="space-y-4">
+          <div v-if="orderItems.length > 0" class="space-y-4">
             <div
               v-for="item in orderItems"
               :key="item.id"
               class="order-item border-b py-2 flex items-center"
             >
-              <!-- Отображаем изображение товара, если оно задано -->
+              <!-- Отображаем изображение товара -->
               <img
-                v-if="item.imageUrl"
                 :src="item.imageUrl"
                 alt="Изображение товара"
-                class="w-16 h-16 object-cover mr-3 border"
+                class="w-27 h-20 object-cover mr-3 border rounded"
               />
               <div>
-                <p class="font-bold">{{ item.name }}</p>
+                <p class="font-bold">{{ item.title }}</p>
                 <p>Размер: {{ item.size }}, Количество: {{ item.quantity }}</p>
               </div>
-              <div class="ml-auto">
+              <div class="ml-auto font-bold">
                 <p>{{ item.price }} ₽</p>
               </div>
             </div>
@@ -46,12 +47,12 @@
           </div>
         </section>
 
-        <!-- Секция итоговых сумм заказа -->
+        <!-- Секция итоговой суммы заказа -->
         <section class="order-summary mb-8">
           <h2 class="text-2xl font-semibold mb-4">Сумма заказа</h2>
           <p>Стоимость товаров: {{ totalPrice }} ₽</p>
           <p>Доставка: {{ shippingCost }} ₽</p>
-          <p class="font-bold">Итого: {{ grandTotal }} ₽</p>
+          <p class="font-bold text-lg">Итого: {{ grandTotal }} ₽</p>
         </section>
 
         <!-- Форма с деталями заказа -->
@@ -64,7 +65,7 @@
                 v-model="orderData.address"
                 type="text"
                 id="address"
-                placeholder="Введите адрес доставки"
+                placeholder="Введите адрес"
                 required
                 class="w-full p-2 border rounded"
               />
@@ -99,10 +100,7 @@
             </div>
 
             <!-- Платёжные данные -->
-            <div
-              v-if="orderData.paymentMethod === 'card' || orderData.paymentMethod === 'online'"
-              class="space-y-4"
-            >
+            <div v-if="orderData.paymentMethod === 'online'" class="space-y-4">
               <div>
                 <label for="cardNumber" class="block mb-1">Номер карты</label>
                 <input
@@ -110,8 +108,6 @@
                   type="text"
                   id="cardNumber"
                   placeholder="Введите номер карты"
-                  inputmode="numeric"
-                  pattern="[0-9]*"
                   maxlength="16"
                   required
                   class="w-full p-2 border rounded"
@@ -123,10 +119,8 @@
                   v-model="orderData.cardExpiry"
                   type="text"
                   id="cardExpiry"
-                  placeholder="MMYY"
-                  inputmode="numeric"
-                  pattern="[0-9]*"
-                  maxlength="4"
+                  placeholder="MM/YY"
+                  maxlength="5"
                   required
                   class="w-full p-2 border rounded"
                 />
@@ -138,8 +132,6 @@
                   type="password"
                   id="cardCVV"
                   placeholder="Введите CVV"
-                  inputmode="numeric"
-                  pattern="[0-9]*"
                   maxlength="3"
                   required
                   class="w-full p-2 border rounded"
@@ -147,7 +139,11 @@
               </div>
             </div>
 
-            <button type="submit" class="w-full py-3 rounded transition" :disabled="isSubmitting">
+            <button
+              type="submit"
+              class="w-full py-3 rounded bg-green-500 text-white transition"
+              :disabled="isSubmitting"
+            >
               Подтвердить заказ
             </button>
           </form>
@@ -195,7 +191,7 @@ function parseJwt(token) {
 }
 
 // Получаем токен из cookies (ключ "accessToken")
-const token = Cookies.get('accessToken')
+const token = Cookies.get('apiToken')
 
 // Декодируем токен вручную – если структура вашего токена отличается, при необходимости измените логику
 let account = { id: 'guest', name: 'Гость', email: 'guest@example.com' }
@@ -224,10 +220,9 @@ if (route.query.orderItems) {
 }
 const orderItems = ref(parsedItems)
 
-// Если totalPrice и vatPrice переданы через query, используем их; иначе задаём 0
+// Если totalPrice переданы через query, используем их; иначе задаём 0
 const queryTotalPrice = Number(route.query.totalPrice) || 0
 const totalPrice = ref(queryTotalPrice)
-const vatPrice = ref(queryVatPrice)
 
 // Форма с деталями заказа
 const orderData = ref({
@@ -247,7 +242,7 @@ const shippingCost = computed(() => {
 })
 
 // Итоговая сумма заказа
-const grandTotal = computed(() => totalPrice.value + vatPrice.value + shippingCost.value)
+const grandTotal = computed(() => totalPrice.value + shippingCost.value)
 
 // Флаги для состояния отправки и сообщений
 const orderMessage = ref('')
@@ -287,13 +282,23 @@ const submitOrder = async () => {
   errorMessage.value = ''
   orderMessage.value = ''
 
-  // Формируем payload заказа, включая данные аккаунта, полученные из токена
+  const orderDate = new Date().toISOString()
+
+
+  // Формируем payload заказа, добавляя название и изображение каждого товара
   const payload = {
-    items: orderItems.value,
+    items: orderItems.value.map((item) => ({
+      id: item.id,
+      title: item.title, // Название товара
+      image: item.image, // Ссылка на изображение товара
+      quantity: item.quantity,
+      size: item.size,
+      price: item.price
+    })),
     totalPrice: totalPrice.value,
-    vatPrice: vatPrice.value,
     shippingCost: shippingCost.value,
     grandTotal: grandTotal.value,
+    date: orderDate,
     orderDetails: {
       address: orderData.value.address,
       shippingMethod: orderData.value.shippingMethod,
@@ -313,7 +318,6 @@ const submitOrder = async () => {
   try {
     const response = await axios.post('https://fc92f27366340adc.mokky.dev/orders', payload)
     orderMessage.value = `Заказ успешно оформлен! Индивидуальный номер заказа: ${response.data.id}`
-    // После успешного оформления очищаем корзину (если корзина хранится в localStorage)
     localStorage.removeItem('cart')
   } catch (err) {
     console.error('Ошибка отправки заказа:', err)

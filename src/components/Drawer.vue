@@ -25,7 +25,7 @@ function getCookie(name) {
 
 // Определяем, авторизован ли пользователь (на основе наличия токена)
 const isUserAuthorized = computed(() => {
-  return !!getCookie('token')
+  return !!getCookie('apiToken')
 })
 
 // Если пользователь выходит (токен исчезает), очищаем корзину
@@ -42,33 +42,36 @@ const computedTotalPrice = computed(() => {
 
 // Функция создания заказа. Здесь мы берём товары из корзины, включая актуальное количество.
 const createOrder = () => {
-  if (cart.value.length === 0) return
+  if (cart.value.length === 0) return;
 
-  isCreating.value = true
+  isCreating.value = true;
 
-  // Формирование массива товаров, где сохраняются актуальные поля, в том числе quantity
+  // Формируем массив товаров с исправленной передачей названия и цены
   const orderItems = cart.value.map(item => ({
     id: item.id,
-    name: item.name,          // убедитесь, что имя сохраняется в объекте товара
-    price: item.price,
-    quantity: item.quantity || 1,
-    size: item.selectedSize   // выбранный размер, если есть
-  }))
+    title: item.title || item.name,  // Исправлено: теперь название точно передаётся
+    price: item.price,               // Исправлено: передаётся цена товара
+    quantity: item.quantity || 1,     // Количество
+    size: item.selectedSize,          // Размер (если есть)
+    imageUrl: item.imageUrl           // Изображение товара
+  }));
 
-  // Закрываем корзину (drawer)
-  if (typeof closeDrawer === 'function') closeDrawer()
+  // Закрываем корзину (drawer), если функция существует
+  if (typeof closeDrawer === 'function') closeDrawer();
 
-  // Перенаправляем пользователя на страницу заказа, передавая данные заказа через query-параметры
+  // Удаляем данные корзины из localStorage
+  localStorage.removeItem('cart');
+
+  // Перенаправляем пользователя на страницу заказа, передавая корректные данные
   router.push({
     name: 'Order',
     query: {
       orderItems: JSON.stringify(orderItems),
-      totalPrice: computedTotalPrice.value
+      totalPrice: computedTotalPrice.value // Исправлено: цена передаётся правильно
     }
-  })
+  });
+};
 
-  isCreating.value = false
-}
 
 const cartIsEmpty = computed(() => cart.value.length === 0)
 const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value)

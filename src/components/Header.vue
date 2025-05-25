@@ -20,16 +20,16 @@ const emit = defineEmits(['openDrawer'])
 
     <!-- Средняя область: ссылки на категории -->
     <nav class="flex gap-8">
-      <router-link to="/categories/muzhskie">
+      <router-link to="/MenSneakers">
         <span class="cursor-pointer text-gray-700 hover:text-black">Мужские</span>
       </router-link>
-      <router-link to="/categories/zhenskie">
+      <router-link to="/WomenSneakers">
         <span class="cursor-pointer text-gray-700 hover:text-black">Женские</span>
       </router-link>
-      <router-link to="/categories/novinki">
+      <router-link to="/NewSneakers">
         <span class="cursor-pointer text-gray-700 hover:text-black">Новинки</span>
       </router-link>
-      <router-link to="/categories/sportivnye">
+      <router-link to="/SportSneakers">
         <span class="cursor-pointer text-gray-700 hover:text-black">Спортивные</span>
       </router-link>
     </nav>
