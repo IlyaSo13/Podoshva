@@ -110,6 +110,9 @@
                   placeholder="Введите номер карты"
                   maxlength="16"
                   required
+                  inputmode="numeric"
+                  pattern="\d*"
+                  @input="orderData.cardNumber = orderData.cardNumber.replace(/\D/g, '')"
                   class="w-full p-2 border rounded"
                 />
               </div>
@@ -122,6 +125,9 @@
                   placeholder="MM/YY"
                   maxlength="4"
                   required
+                  inputmode="numeric"
+                  pattern="\d*"
+                  @input="orderData.cardExpiry = orderData.cardExpiry.replace(/\D/g, '')"
                   class="w-full p-2 border rounded"
                 />
               </div>
@@ -134,6 +140,9 @@
                   placeholder="Введите CVV"
                   maxlength="3"
                   required
+                  inputmode="numeric"
+                  pattern="\d*"
+                  @input="orderData.cardCVV = orderData.cardCVV.replace(/\D/g, '')"
                   class="w-full p-2 border rounded"
                 />
               </div>
