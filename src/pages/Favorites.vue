@@ -68,7 +68,7 @@ onMounted(async () => {
     favorites.value = data.map((obj) => ({
       ...obj.item,
       favoriteId: obj.id, // сохраняем id записи избранного
-      sizes: obj.item.sizes || ['38', '39', '40', '41', '42'],
+      sizes: obj.item.sizes || ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45'],
       isFavorite: true,
       isAdded: cart.value.some((cartItem) => cartItem.id === obj.item.id)
     }))
