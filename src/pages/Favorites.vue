@@ -160,7 +160,7 @@ const closeModal = () => {
     <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
       <div class="modal">
         <h3 class="text-xl mb-4">
-          Выберите размер для {{ selectedProduct ? selectedProduct.title : '' }}
+          Выберите размер {{ selectedProduct ? selectedProduct.title : '' }}
         </h3>
         <select v-model="selectedSize" class="py-2 px-3 border rounded-md outline-none">
           <option disabled value="">Выберите размер</option>
