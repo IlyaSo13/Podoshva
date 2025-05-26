@@ -56,14 +56,14 @@ const increment = () => {
           alt="Удалить"
         />
       </div>
-      <div class="mt-2 flex flex-col">
+      <!-- <div class="mt-2 flex flex-col">
         <span class="text-gray-500 mb-1">Количество: {{ currentQuantity }}</span>
         <div class="quantity-controls flex items-center gap-2">
           <button @click="decrement" :disabled="currentQuantity <= 1">−</button>
           <span class="px-2">{{ currentQuantity }}</span>
           <button @click="increment">+</button>
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

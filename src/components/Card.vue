@@ -104,7 +104,7 @@ const handleFavoriteClick = () => {
     <p class="text-slate-400">Цена: {{ price }} руб.</p>
 
     <!-- Инпут для изменения количества -->
-    <div class="quantity-selector">
+    <!-- <div class="quantity-selector">
       <label>Количество:</label>
       <input
         type="number"
@@ -113,7 +113,7 @@ const handleFavoriteClick = () => {
         class="quantity-input"
         @change="updateQuantity"
       />
-    </div>
+    </div> -->
 
     <!-- Кнопка добавления в корзину -->
     <button
