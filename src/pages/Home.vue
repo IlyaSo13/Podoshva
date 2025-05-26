@@ -12,48 +12,48 @@ const { cart, addToCart, removeFromCart } = inject('cart')
 
 // Функция для извлечения cookie по имени
 function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+  return null
 }
 
 // Функция для декодирования JWT
 function parseJwt(token) {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(c => {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        .map((c) => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
         })
         .join('')
-    );
-    return JSON.parse(jsonPayload);
+    )
+    return JSON.parse(jsonPayload)
   } catch (e) {
-    console.error('Ошибка декодирования токена:', e);
-    return null;
+    console.error('Ошибка декодирования токена:', e)
+    return null
   }
 }
 
 // Вместо получения токена из localStorage теперь получаем его из куки
 const token = getCookie('apiToken')
 // currentUser хранится в реактивной переменной.
-const currentUser = ref(token ? parseJwt(token) : null);
+const currentUser = ref(token ? parseJwt(token) : null)
 
 // Вычисляемое свойство для проверки авторизации
-const isUserAuthorized = computed(() => !!(currentUser.value && currentUser.value.id));
+const isUserAuthorized = computed(() => !!(currentUser.value && currentUser.value.id))
 
 // Список товаров
-const items = ref([]);
+const items = ref([])
 
 // Фильтры для сортировки и поиска
 const filters = reactive({
   sortBy: 'title',
   searchQuery: ''
-});
+})
 
 // Модальные переменные для выбора размера при добавлении в корзину
 const showModal = ref(false)
@@ -147,7 +147,7 @@ const fetchItems = async () => {
       isFavorite: false,
       favoriteId: null,
       isAdded: false,
-      sizes: obj.sizes || ['36','37','38', '39', '40', '41', '42', '43', '44', '45']
+      sizes: obj.sizes || ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45']
     }))
   } catch (err) {
     console.log(err)
@@ -206,7 +206,7 @@ watch(isUserAuthorized, (newVal) => {
   if (!newVal) {
     // Если пользователь не авторизован, обновляем все товары,
     // снимая пометки избранного.
-    items.value = items.value.map(item => ({
+    items.value = items.value.map((item) => ({
       ...item,
       isFavorite: false,
       favoriteId: null
@@ -241,11 +241,11 @@ watch(isUserAuthorized, (newVal) => {
 
     <!-- Список товаров; передаем в CardList флаг isAuthorized -->
     <div class="mt-10">
-      <CardList 
-        :items="items" 
+      <CardList
+        :items="items"
         :isAuthorized="isUserAuthorized"
-        @add-to-favorite="addToFavorite" 
-        @add-to-cart="onClickAddPlus" 
+        @add-to-favorite="addToFavorite"
+        @add-to-cart="onClickAddPlus"
       />
     </div>
     <div class="mt-10">
@@ -261,7 +261,9 @@ watch(isUserAuthorized, (newVal) => {
         <select v-model="selectedSize" class="py-2 px-3 border rounded-md outline-none">
           <option disabled value="">Выберите размер</option>
           <option
-            v-for="size in selectedProduct && selectedProduct.sizes ? selectedProduct.sizes : ['38','39','40','41','42']"
+            v-for="size in selectedProduct && selectedProduct.sizes
+              ? selectedProduct.sizes
+              : ['38', '39', '40', '41', '42']"
             :key="size"
             :value="size"
           >
@@ -276,10 +278,7 @@ watch(isUserAuthorized, (newVal) => {
           >
             Добавить
           </button>
-          <button 
-            @click="closeModal" 
-            class="py-2 px-4 bg-gray-300 text-black rounded"
-          >
+          <button @click="closeModal" class="py-2 px-4 bg-gray-300 text-black rounded">
             Отмена
           </button>
         </div>

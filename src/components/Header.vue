@@ -57,3 +57,52 @@ const emit = defineEmits(['openDrawer'])
     </ul>
   </header>
 </template>
+
+<style>
+/* ПК-версия (стандартная) */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding: 16px 40px;
+}
+
+/* Медиа-запросы для мобильных устройств */
+@media (max-width: 1260px) {
+  header {
+    flex-direction: column;
+    padding: 12px 20px;
+    text-align: center;
+  }
+
+  nav {
+    display: none; /* Скрываем стандартную навигацию */
+  }
+
+  .menu-toggle {
+    display: block; /* Показываем бургер-меню */
+    cursor: pointer;
+  }
+  
+  ul {
+    gap: 20px;
+  }
+}
+
+/* Для очень маленьких экранов (до 480px) */
+@media (max-width: 480px) {
+  header {
+    padding: 8px 15px;
+  }
+
+  .logo img {
+    width: 32px;
+  }
+
+  ul {
+    gap: 15px;
+  }
+}
+</style>
+

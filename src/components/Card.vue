@@ -17,7 +17,7 @@ function parseJwt(token) {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
         .join('')
     )
     return JSON.parse(jsonPayload)
@@ -88,14 +88,20 @@ const handleFavoriteClick = () => {
 </script>
 
 <template>
-  <div class="card relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-xl">
+  <div
+    class="card relative bg-white border border-slate-100 rounded-3xl p-8 cursor-pointer transition hover:-translate-y-2 hover:shadow-xl"
+  >
     <!-- Кнопка избранного -->
     <button
       v-if="onClickFavorite"
       class="heart-button absolute top-8 left-8 z-9 bg-transparent border-0 cursor-pointer"
       @click.stop="handleFavoriteClick"
     >
-      <img :src="displayedAddedFavorite ? '/like-2.svg' : '/like-1.svg'" alt="Favorite Icon" class="heart-icon" />
+      <img
+        :src="displayedAddedFavorite ? '/like-2.svg' : '/like-1.svg'"
+        alt="Favorite Icon"
+        class="heart-icon"
+      />
     </button>
 
     <img :src="imageUrl" alt="Product Image" class="w-full object-cover rounded-md mb-2" />
@@ -121,7 +127,11 @@ const handleFavoriteClick = () => {
       class="cart-button mt-4 inline-flex items-center bg-transparent border-0 cursor-pointer"
       @click.stop="handleCartClick"
     >
-      <img :src="displayedAdded ? '/checked.svg' : '/plus.svg'" alt="Add to Cart Icon" class="cart-icon" />
+      <img
+        :src="displayedAdded ? '/checked.svg' : '/plus.svg'"
+        alt="Add to Cart Icon"
+        class="cart-icon"
+      />
     </button>
   </div>
 </template>
