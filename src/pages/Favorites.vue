@@ -148,8 +148,10 @@ const closeModal = () => {
         :price="item.price"
         :isFavorite="item.isFavorite"
         :isAdded="item.isAdded"
-        :onClickFavorite="() => toggleFavorite(item)"
-        :onClickAdd="() => handleAddToCart(item)"
+        :isAuthorized="true"
+        v-bind="item"
+        :onClickFavorite="toggleFavorite"
+        :onClickAdd="handleAddToCart"
       />
     </div>
     <Footer class="mt-10" />
