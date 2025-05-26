@@ -55,13 +55,12 @@ const displayedAdded = computed(() => {
   return userAuthorized.value ? props.isAdded : false
 })
 
+const displayedAddedFavorite = computed(() => {
+  return userAuthorized.value ? props.isFavorite : false
+})
+
 // Обработчик клика по кнопке добавления в корзину
 const handleCartClick = () => {
-  if (!userAuthorized.value) {
-    alert('Пожалуйста, войдите в систему, чтобы добавить товар в корзину.')
-    return
-  }
-  // Передаём актуальное количество из локального состояния
   if (props.onClickAdd) {
     props.onClickAdd({ id: props.id, quantity: quantity.value })
   }
@@ -96,7 +95,7 @@ const handleFavoriteClick = () => {
       class="heart-button absolute top-8 left-8 z-9 bg-transparent border-0 cursor-pointer"
       @click.stop="handleFavoriteClick"
     >
-      <img :src="isFavorite ? '/like-2.svg' : '/like-1.svg'" alt="Favorite Icon" class="heart-icon" />
+      <img :src="displayedAddedFavorite ? '/like-2.svg' : '/like-1.svg'" alt="Favorite Icon" class="heart-icon" />
     </button>
 
     <img :src="imageUrl" alt="Product Image" class="w-full object-cover rounded-md mb-2" />

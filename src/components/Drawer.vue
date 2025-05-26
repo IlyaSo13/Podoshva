@@ -60,7 +60,6 @@ const createOrder = () => {
   if (typeof closeDrawer === 'function') closeDrawer();
 
   // Удаляем данные корзины из localStorage
-  localStorage.removeItem('cart');
 
   // Перенаправляем пользователя на страницу заказа, передавая корректные данные
   router.push({

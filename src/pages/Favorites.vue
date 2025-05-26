@@ -12,7 +12,7 @@ function parseJwt(token) {
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
-        .map(c => {
+        .map((c) => {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
         })
         .join('')
@@ -26,10 +26,10 @@ function parseJwt(token) {
 
 // Функция для извлечения значения cookie по имени
 function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+  return null
 }
 
 // Получаем токен из cookie и определяем текущего пользователя
@@ -67,7 +67,7 @@ onMounted(async () => {
     */
     favorites.value = data.map((obj) => ({
       ...obj.item,
-      favoriteId: obj.id,           // сохраняем id записи избранного
+      favoriteId: obj.id, // сохраняем id записи избранного
       sizes: obj.item.sizes || ['38', '39', '40', '41', '42'],
       isFavorite: true,
       isAdded: cart.value.some((cartItem) => cartItem.id === obj.item.id)
@@ -163,7 +163,9 @@ const closeModal = () => {
         <select v-model="selectedSize" class="py-2 px-3 border rounded-md outline-none">
           <option disabled value="">Выберите размер</option>
           <option
-            v-for="size in selectedProduct && selectedProduct.sizes ? selectedProduct.sizes : ['38', '39', '40', '41', '42']"
+            v-for="size in selectedProduct && selectedProduct.sizes
+              ? selectedProduct.sizes
+              : ['36', '37', '38', '39', '40', '41', '42', '43', '44', '45']"
             :key="size"
             :value="size"
           >

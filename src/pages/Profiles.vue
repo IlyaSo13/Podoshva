@@ -173,6 +173,7 @@ export default {
       user.value = null
       userOrders.value = []
       router.push({ name: 'Login' })
+      
     }
 
     // При монтировании загружаем данные пользователя и его заказы
