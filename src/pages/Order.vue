@@ -120,7 +120,7 @@
                   type="text"
                   id="cardExpiry"
                   placeholder="MM/YY"
-                  maxlength="5"
+                  maxlength="4"
                   required
                   class="w-full p-2 border rounded"
                 />
@@ -283,7 +283,6 @@ const submitOrder = async () => {
   orderMessage.value = ''
 
   const orderDate = new Date().toISOString()
-
 
   // Формируем payload заказа, добавляя название и изображение каждого товара
   const payload = {
