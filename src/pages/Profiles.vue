@@ -4,22 +4,21 @@
       <h2 class="text-2xl font-bold mb-4">Информация о пользователе</h2>
 
       <!-- Форма входа -->
-      <form v-if="!user" @submit.prevent="handleLogin">
-        <div>
-          <label for="email">Email: </label>
-          <input type="email" id="email" v-model="email" required />
-        </div>
-        <div>
-          <label for="password">Пароль: </label>
-          <input type="password" id="password" v-model="password" required />
-        </div>
-        <button type="submit">Войти</button>
-        <router-link to="/registration">
-          <li class="flex items-center cursor-pointer gap-3 text-gray-500 hover:text-black">
-            <span>Регистрация</span>
-          </li>
-        </router-link>
-      </form>
+      <form v-if="!user" @submit.prevent="handleLogin" class="auth-form">
+  <div class="input-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" v-model="email" required class="auth-input" />
+  </div>
+  <div class="input-group">
+    <label for="password">Пароль</label>
+    <input type="password" id="password" v-model="password" required class="auth-input" />
+  </div>
+  <button type="submit" class="auth-button">Войти</button>
+  <router-link to="/registration" class="register-link">
+    <span>Регистрация</span>
+  </router-link>
+</form>
+
 
       <!-- Ошибка авторизации -->
       <p v-if="error" class="error">{{ error }}</p>
@@ -213,5 +212,64 @@ export default {
 
 .order-item {
   margin-left: 15px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  padding: 24px;
+  border-radius: 12px;
+  background: #f9f9f9;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  font-size: 16px;
+  transition: border 0.3s;
+}
+
+.auth-input:focus {
+  border: 1px solid #84cc16;
+}
+
+.auth-button {
+  background-color: #84cc16;
+  color: white;
+  font-size: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.auth-button:hover {
+  background-color: #5fa30b;
+}
+
+.register-link {
+  text-align: center;
+  color: #555;
+  font-size: 14px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.register-link:hover {
+  color: black;
 }
 </style>
