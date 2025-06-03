@@ -1,7 +1,7 @@
 <template>
   <div class="order-page">
     <!-- Шапка страницы -->
-    <header class="py-6">
+    <header class="py-6 mb-5">
       <h1 class="text-3xl font-bold text-center">Оформление заказа</h1>
     </header>
 
@@ -108,6 +108,7 @@
                   type="text"
                   id="cardNumber"
                   placeholder="Введите номер карты"
+                  minlength="16"
                   maxlength="16"
                   required
                   inputmode="numeric"
@@ -123,6 +124,7 @@
                   type="text"
                   id="cardExpiry"
                   placeholder="MM/YY"
+                  minlength="4"
                   maxlength="4"
                   required
                   inputmode="numeric"
@@ -138,6 +140,7 @@
                   type="password"
                   id="cardCVV"
                   placeholder="Введите CVV"
+                  minlength="3"
                   maxlength="3"
                   required
                   inputmode="numeric"

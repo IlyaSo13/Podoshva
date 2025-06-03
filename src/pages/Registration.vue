@@ -35,7 +35,7 @@ import { ref } from "vue";
 import axios from "axios";
 import { useRouter } from "vue-router";
 import Cookies from "js-cookie";
-import Footer from "../components/Footer.vue"; // Убедитесь, что путь корректный
+import Footer from "../components/Footer.vue"; 
 
 export default {
   name: "Registration",
@@ -59,14 +59,8 @@ export default {
           },
           { withCredentials: true }
         );
-        const token = response.data.token;
-        // Сохраняем токен в куки на 7 дней
-        Cookies.set("apiToken", token, {
-          expires: 7,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-        });
-        router.push({ name: "Home" });
+    
+        router.push({ name: "Profiles" });
       } catch (err) {
         console.error(err);
         error.value = "Ошибка регистрации. Проверьте введённые данные.";
